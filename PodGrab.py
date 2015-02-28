@@ -2,12 +2,15 @@
 
 # PodGrab - A Python command line audio/video podcast downloader for RSS XML feeds.
 # Supported RSS item file types: MP3, M4V, OGG, FLV, MP4, MPG/MPEG, WMA, WMV, WEBM
-# Version: 1.1.2 - 06/10/2011
+# Version: 1.1.3 - 02/28/2015
 # Jonathan Baker 
 # jon@the-node.org (http://the-node.org)
 
 # Werner Avenant - added small changes to write M3U file of podcasts downloaded today
 # werner.avenant@gmail.com (http://www.collectiveminds.co.za)
+
+# Bill Conn - added an --unsubscribe-and-delete mode, made regular --unsubscribe not delete files
+# b_conn@hotmail.com
 
 # Do with this code what you will, it's "open source". As a courtesy,
 # I would appreciate credit if you base your code on mine. If you find
@@ -40,13 +43,14 @@ MODE_NONE = 70
 MODE_SUBSCRIBE = 71
 MODE_DOWNLOAD = 72
 MODE_UNSUBSCRIBE = 73
-MODE_LIST = 74
-MODE_UPDATE = 75
-MODE_MAIL_ADD = 76
-MODE_MAIL_DELETE = 77
-MODE_MAIL_LIST = 78
-MODE_EXPORT = 79
-MODE_IMPORT = 80
+MODE_UNSUBSCRIBE_AND_DELETE = 74
+MODE_LIST = 75
+MODE_UPDATE = 76
+MODE_MAIL_ADD = 77
+MODE_MAIL_DELETE = 78
+MODE_MAIL_LIST = 79
+MODE_EXPORT = 80
+MODE_IMPORT = 81
 
 NUM_MAX_DOWNLOADS = 4
 
@@ -90,6 +94,7 @@ def main(argv):
 	parser.add_argument('-s', '--subscribe', action="store", dest="sub_feed_url", help='Subscribe to the following XML feed and download latest podcast')
 	parser.add_argument('-d', '--download', action="store", dest="dl_feed_url", help='Bulk download all podcasts in the following XML feed or file')
 	parser.add_argument('-un', '--unsubscribe', action="store", dest="unsub_url", help='Unsubscribe from the following Podcast feed')
+	parser.add_argument('-und', '--unsubscribe-and-delete', action="store", dest="unsub_and_del_url", help='Unsubscribe and delete all related files from the following Podcast feed')
 	parser.add_argument('-ma', '--mail-add', action="store", dest="mail_address_add", help='Add a mail address to mail subscription updates to')
 	parser.add_argument('-md', '--mail-delete', action="store", dest="mail_address_delete", help='Delete a mail address')
 
@@ -125,6 +130,10 @@ def main(argv):
 	elif arguments.unsub_url:
 		feed_url = arguments.unsub_url
 		mode = MODE_UNSUBSCRIBE
+
+        elif arguments.unsub_and_del_url:
+                feed_url = arguments.unsub_and_del_url
+                mode = MODE_UNSUBSCRIBE_AND_DELETE
 		
 	elif arguments.list_subs:
 		mode = MODE_LIST
@@ -188,6 +197,15 @@ def main(argv):
 		print "Download directory exists: '" + download_directory + "'" 
 	if not has_error:
 		if mode == MODE_UNSUBSCRIBE:
+			feed_name = get_name_from_feed(cursor, connection, feed_url)
+			if feed_name == "None":
+				print "Feed does not exist in the database! Skipping..."
+			else:
+				feed_name = clean_string(feed_name)
+				channel_directory = download_directory + os.sep + feed_name
+				delete_subscription(cursor, connection, feed_url)
+				print "Subscription '" + feed_name + "' removed but files were left"
+		elif mode == MODE_UNSUBSCRIBE_AND_DELETE:
 			feed_name = get_name_from_feed(cursor, connection, feed_url)
 			if feed_name == "None":
 				print "Feed does not exist in the database! Skipping..."

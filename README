@@ -33,3 +33,14 @@ Changes after fork:
     - Function update_subscription will check to see if the last_ep is older
       than the existing last_ep
     - Moved NUM_MAX_DOWNLOAD to the front of the file for easy configuration
+
+==== UPDATES AFTER FORK ====
+
+Author: Bill Conn - b_conn@hotmail.com
+
+Changes after fork:
+
+    - Changed the unsubscribe method so that it doesn't delete all of the
+      downloaded files when you unsubscribe
+    - Added a new method, -und or --unsubscribe-and-delete to both unsubscribe
+      and delete all files
